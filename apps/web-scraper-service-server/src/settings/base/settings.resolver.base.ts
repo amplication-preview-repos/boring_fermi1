@@ -13,16 +13,34 @@ import * as graphql from "@nestjs/graphql";
 import { GraphQLError } from "graphql";
 import { isRecordNotFoundError } from "../../prisma.util";
 import { MetaQueryPayload } from "../../util/MetaQueryPayload";
+import * as nestAccessControl from "nest-access-control";
+import * as gqlACGuard from "../../auth/gqlAC.guard";
+import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
+import * as common from "@nestjs/common";
+import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { Settings } from "./Settings";
 import { SettingsCountArgs } from "./SettingsCountArgs";
 import { SettingsFindManyArgs } from "./SettingsFindManyArgs";
 import { SettingsFindUniqueArgs } from "./SettingsFindUniqueArgs";
+import { CreateSettingsArgs } from "./CreateSettingsArgs";
+import { UpdateSettingsArgs } from "./UpdateSettingsArgs";
 import { DeleteSettingsArgs } from "./DeleteSettingsArgs";
 import { SettingsService } from "../settings.service";
+@common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => Settings)
 export class SettingsResolverBase {
-  constructor(protected readonly service: SettingsService) {}
+  constructor(
+    protected readonly service: SettingsService,
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+  ) {}
 
+  @graphql.Query(() => MetaQueryPayload)
+  @nestAccessControl.UseRoles({
+    resource: "Settings",
+    action: "read",
+    possession: "any",
+  })
   async _settingsItemsMeta(
     @graphql.Args() args: SettingsCountArgs
   ): Promise<MetaQueryPayload> {
@@ -32,14 +50,26 @@ export class SettingsResolverBase {
     };
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.Query(() => [Settings])
+  @nestAccessControl.UseRoles({
+    resource: "Settings",
+    action: "read",
+    possession: "any",
+  })
   async settingsItems(
     @graphql.Args() args: SettingsFindManyArgs
   ): Promise<Settings[]> {
     return this.service.settingsItems(args);
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.Query(() => Settings, { nullable: true })
+  @nestAccessControl.UseRoles({
+    resource: "Settings",
+    action: "read",
+    possession: "own",
+  })
   async settings(
     @graphql.Args() args: SettingsFindUniqueArgs
   ): Promise<Settings | null> {
@@ -50,7 +80,53 @@ export class SettingsResolverBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @graphql.Mutation(() => Settings)
+  @nestAccessControl.UseRoles({
+    resource: "Settings",
+    action: "create",
+    possession: "any",
+  })
+  async createSettings(
+    @graphql.Args() args: CreateSettingsArgs
+  ): Promise<Settings> {
+    return await this.service.createSettings({
+      ...args,
+      data: args.data,
+    });
+  }
+
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Settings)
+  @nestAccessControl.UseRoles({
+    resource: "Settings",
+    action: "update",
+    possession: "any",
+  })
+  async updateSettings(
+    @graphql.Args() args: UpdateSettingsArgs
+  ): Promise<Settings | null> {
+    try {
+      return await this.service.updateSettings({
+        ...args,
+        data: args.data,
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new GraphQLError(
+          `No resource was found for ${JSON.stringify(args.where)}`
+        );
+      }
+      throw error;
+    }
+  }
+
+  @graphql.Mutation(() => Settings)
+  @nestAccessControl.UseRoles({
+    resource: "Settings",
+    action: "delete",
+    possession: "any",
+  })
   async deleteSettings(
     @graphql.Args() args: DeleteSettingsArgs
   ): Promise<Settings | null> {

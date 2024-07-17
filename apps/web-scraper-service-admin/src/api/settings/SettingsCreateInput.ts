@@ -1,1 +1,3 @@
-export type SettingsCreateInput = {};
+export type SettingsCreateInput = {
+  priceAdjustment?: number | null;
+};

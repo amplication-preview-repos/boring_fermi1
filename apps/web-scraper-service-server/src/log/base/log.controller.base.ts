@@ -16,17 +16,39 @@ import * as errors from "../../errors";
 import { Request } from "express";
 import { plainToClass } from "class-transformer";
 import { ApiNestedQuery } from "../../decorators/api-nested-query.decorator";
+import * as nestAccessControl from "nest-access-control";
+import * as defaultAuthGuard from "../../auth/defaultAuth.guard";
 import { LogService } from "../log.service";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
+import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
 import { LogCreateInput } from "./LogCreateInput";
 import { Log } from "./Log";
 import { LogFindManyArgs } from "./LogFindManyArgs";
 import { LogWhereUniqueInput } from "./LogWhereUniqueInput";
 import { LogUpdateInput } from "./LogUpdateInput";
+import { LogMessageDto } from "../LogMessageDto";
 
+@swagger.ApiBearerAuth()
+@common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
 export class LogControllerBase {
-  constructor(protected readonly service: LogService) {}
+  constructor(
+    protected readonly service: LogService,
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+  ) {}
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Post()
   @swagger.ApiCreatedResponse({ type: Log })
+  @nestAccessControl.UseRoles({
+    resource: "Log",
+    action: "create",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  @swagger.ApiBody({
+    type: LogCreateInput,
+  })
   async createLog(@common.Body() data: LogCreateInput): Promise<Log> {
     return await this.service.createLog({
       data: data,
@@ -34,13 +56,25 @@ export class LogControllerBase {
         id: true,
         createdAt: true,
         updatedAt: true,
+        logType: true,
+        createdOn: true,
+        message: true,
       },
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get()
   @swagger.ApiOkResponse({ type: [Log] })
   @ApiNestedQuery(LogFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Log",
+    action: "read",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async logs(@common.Req() request: Request): Promise<Log[]> {
     const args = plainToClass(LogFindManyArgs, request.query);
     return this.service.logs({
@@ -49,13 +83,25 @@ export class LogControllerBase {
         id: true,
         createdAt: true,
         updatedAt: true,
+        logType: true,
+        createdOn: true,
+        message: true,
       },
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id")
   @swagger.ApiOkResponse({ type: Log })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Log",
+    action: "read",
+    possession: "own",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async log(@common.Param() params: LogWhereUniqueInput): Promise<Log | null> {
     const result = await this.service.log({
       where: params,
@@ -63,6 +109,9 @@ export class LogControllerBase {
         id: true,
         createdAt: true,
         updatedAt: true,
+        logType: true,
+        createdOn: true,
+        message: true,
       },
     });
     if (result === null) {
@@ -73,9 +122,21 @@ export class LogControllerBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Patch("/:id")
   @swagger.ApiOkResponse({ type: Log })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Log",
+    action: "update",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  @swagger.ApiBody({
+    type: LogUpdateInput,
+  })
   async updateLog(
     @common.Param() params: LogWhereUniqueInput,
     @common.Body() data: LogUpdateInput
@@ -88,6 +149,9 @@ export class LogControllerBase {
           id: true,
           createdAt: true,
           updatedAt: true,
+          logType: true,
+          createdOn: true,
+          message: true,
         },
       });
     } catch (error) {
@@ -103,6 +167,14 @@ export class LogControllerBase {
   @common.Delete("/:id")
   @swagger.ApiOkResponse({ type: Log })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Log",
+    action: "delete",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async deleteLog(
     @common.Param() params: LogWhereUniqueInput
   ): Promise<Log | null> {
@@ -113,6 +185,9 @@ export class LogControllerBase {
           id: true,
           createdAt: true,
           updatedAt: true,
+          logType: true,
+          createdOn: true,
+          message: true,
         },
       });
     } catch (error) {
@@ -123,5 +198,22 @@ export class LogControllerBase {
       }
       throw error;
     }
+  }
+
+  @common.Post("/log")
+  @swagger.ApiOkResponse({
+    type: Boolean,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async LogMessage(
+    @common.Body()
+    body: LogMessageDto
+  ): Promise<boolean> {
+    return this.service.LogMessage(body);
   }
 }

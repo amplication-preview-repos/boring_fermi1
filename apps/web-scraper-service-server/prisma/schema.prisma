@@ -1,5 +1,5 @@
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DB_URL")
 }
 
@@ -7,20 +7,46 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Product {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Settings {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  priceAdjustment Int?
 }
 
-model Settings {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Product {
+  id                  String   @id @default(cuid())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  manufacturer        String?
+  weight              Int?
+  countryOfOrigin     String?
+  minPurchaseQuantity Int?
+  quantity            Int?
+  price               Float?
+  name                String?
+  length              Int?
+  quantityInBatch     Int?
+  color               String?
 }
 
 model Log {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  logType   String?
+  createdOn DateTime?
+  message   String?
+}
+
+model User {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  firstName String?
+  lastName  String?
+  username  String   @unique
+  email     String?  @unique
+  password  String
+  roles     Json
 }

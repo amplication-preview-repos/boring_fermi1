@@ -5,18 +5,22 @@ import { theme } from "./theme/theme";
 import Login from "./Login";
 import "./App.scss";
 import Dashboard from "./pages/Dashboard";
-import { ProductList } from "./product/ProductList";
-import { ProductCreate } from "./product/ProductCreate";
-import { ProductEdit } from "./product/ProductEdit";
-import { ProductShow } from "./product/ProductShow";
 import { SettingsList } from "./settings/SettingsList";
 import { SettingsCreate } from "./settings/SettingsCreate";
 import { SettingsEdit } from "./settings/SettingsEdit";
 import { SettingsShow } from "./settings/SettingsShow";
+import { ProductList } from "./product/ProductList";
+import { ProductCreate } from "./product/ProductCreate";
+import { ProductEdit } from "./product/ProductEdit";
+import { ProductShow } from "./product/ProductShow";
 import { LogList } from "./log/LogList";
 import { LogCreate } from "./log/LogCreate";
 import { LogEdit } from "./log/LogEdit";
 import { LogShow } from "./log/LogShow";
+import { UserList } from "./user/UserList";
+import { UserCreate } from "./user/UserCreate";
+import { UserEdit } from "./user/UserEdit";
+import { UserShow } from "./user/UserShow";
 import { jwtAuthProvider } from "./auth-provider/ra-auth-jwt";
 
 const App = (): React.ReactElement => {
@@ -44,13 +48,6 @@ const App = (): React.ReactElement => {
         loginPage={Login}
       >
         <Resource
-          name="Product"
-          list={ProductList}
-          edit={ProductEdit}
-          create={ProductCreate}
-          show={ProductShow}
-        />
-        <Resource
           name="Settings"
           list={SettingsList}
           edit={SettingsEdit}
@@ -58,11 +55,25 @@ const App = (): React.ReactElement => {
           show={SettingsShow}
         />
         <Resource
+          name="Product"
+          list={ProductList}
+          edit={ProductEdit}
+          create={ProductCreate}
+          show={ProductShow}
+        />
+        <Resource
           name="Log"
           list={LogList}
           edit={LogEdit}
           create={LogCreate}
           show={LogShow}
+        />
+        <Resource
+          name="User"
+          list={UserList}
+          edit={UserEdit}
+          create={UserCreate}
+          show={UserShow}
         />
       </Admin>
     </div>

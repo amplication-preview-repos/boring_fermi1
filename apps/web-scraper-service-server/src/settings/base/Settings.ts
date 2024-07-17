@@ -11,7 +11,7 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { ObjectType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsDate } from "class-validator";
+import { IsString, IsDate, IsInt, Min, Max, IsOptional } from "class-validator";
 import { Type } from "class-transformer";
 
 @ObjectType()
@@ -39,6 +39,19 @@ class Settings {
   @Type(() => Date)
   @Field(() => Date)
   updatedAt!: Date;
+
+  @ApiProperty({
+    required: false,
+    type: Number,
+  })
+  @IsInt()
+  @Min(-999999999)
+  @Max(999999999)
+  @IsOptional()
+  @Field(() => Number, {
+    nullable: true,
+  })
+  priceAdjustment!: number | null;
 }
 
 export { Settings as Settings };

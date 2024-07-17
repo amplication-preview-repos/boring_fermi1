@@ -16,17 +16,38 @@ import * as errors from "../../errors";
 import { Request } from "express";
 import { plainToClass } from "class-transformer";
 import { ApiNestedQuery } from "../../decorators/api-nested-query.decorator";
+import * as nestAccessControl from "nest-access-control";
+import * as defaultAuthGuard from "../../auth/defaultAuth.guard";
 import { SettingsService } from "../settings.service";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
+import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
 import { SettingsCreateInput } from "./SettingsCreateInput";
 import { Settings } from "./Settings";
 import { SettingsFindManyArgs } from "./SettingsFindManyArgs";
 import { SettingsWhereUniqueInput } from "./SettingsWhereUniqueInput";
 import { SettingsUpdateInput } from "./SettingsUpdateInput";
 
+@swagger.ApiBearerAuth()
+@common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
 export class SettingsControllerBase {
-  constructor(protected readonly service: SettingsService) {}
+  constructor(
+    protected readonly service: SettingsService,
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+  ) {}
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Post()
   @swagger.ApiCreatedResponse({ type: Settings })
+  @nestAccessControl.UseRoles({
+    resource: "Settings",
+    action: "create",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  @swagger.ApiBody({
+    type: SettingsCreateInput,
+  })
   async createSettings(
     @common.Body() data: SettingsCreateInput
   ): Promise<Settings> {
@@ -36,13 +57,23 @@ export class SettingsControllerBase {
         id: true,
         createdAt: true,
         updatedAt: true,
+        priceAdjustment: true,
       },
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get()
   @swagger.ApiOkResponse({ type: [Settings] })
   @ApiNestedQuery(SettingsFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Settings",
+    action: "read",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async settingsItems(@common.Req() request: Request): Promise<Settings[]> {
     const args = plainToClass(SettingsFindManyArgs, request.query);
     return this.service.settingsItems({
@@ -51,13 +82,23 @@ export class SettingsControllerBase {
         id: true,
         createdAt: true,
         updatedAt: true,
+        priceAdjustment: true,
       },
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id")
   @swagger.ApiOkResponse({ type: Settings })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Settings",
+    action: "read",
+    possession: "own",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async settings(
     @common.Param() params: SettingsWhereUniqueInput
   ): Promise<Settings | null> {
@@ -67,6 +108,7 @@ export class SettingsControllerBase {
         id: true,
         createdAt: true,
         updatedAt: true,
+        priceAdjustment: true,
       },
     });
     if (result === null) {
@@ -77,9 +119,21 @@ export class SettingsControllerBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Patch("/:id")
   @swagger.ApiOkResponse({ type: Settings })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Settings",
+    action: "update",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  @swagger.ApiBody({
+    type: SettingsUpdateInput,
+  })
   async updateSettings(
     @common.Param() params: SettingsWhereUniqueInput,
     @common.Body() data: SettingsUpdateInput
@@ -92,6 +146,7 @@ export class SettingsControllerBase {
           id: true,
           createdAt: true,
           updatedAt: true,
+          priceAdjustment: true,
         },
       });
     } catch (error) {
@@ -107,6 +162,14 @@ export class SettingsControllerBase {
   @common.Delete("/:id")
   @swagger.ApiOkResponse({ type: Settings })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Settings",
+    action: "delete",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async deleteSettings(
     @common.Param() params: SettingsWhereUniqueInput
   ): Promise<Settings | null> {
@@ -117,6 +180,7 @@ export class SettingsControllerBase {
           id: true,
           createdAt: true,
           updatedAt: true,
+          priceAdjustment: true,
         },
       });
     } catch (error) {

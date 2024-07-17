@@ -14,6 +14,9 @@ export const LogShow = (props: ShowProps): React.ReactElement => {
         <TextField label="ID" source="id" />
         <DateField source="createdAt" label="Created At" />
         <DateField source="updatedAt" label="Updated At" />
+        <TextField label="logType" source="logType" />
+        <TextField label="createdOn" source="createdOn" />
+        <TextField label="message" source="message" />
       </SimpleShowLayout>
     </Show>
   );

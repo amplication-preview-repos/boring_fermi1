@@ -4,4 +4,5 @@ export type SettingsOrderByInput = {
   id?: SortOrder;
   createdAt?: SortOrder;
   updatedAt?: SortOrder;
+  priceAdjustment?: SortOrder;
 };

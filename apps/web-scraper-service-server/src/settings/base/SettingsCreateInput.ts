@@ -9,5 +9,24 @@ https://docs.amplication.com/how-to/custom-code
 
 ------------------------------------------------------------------------------
   */
-class SettingsCreateInput {}
+import { InputType, Field } from "@nestjs/graphql";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsInt, Min, Max, IsOptional } from "class-validator";
+
+@InputType()
+class SettingsCreateInput {
+  @ApiProperty({
+    required: false,
+    type: Number,
+  })
+  @IsInt()
+  @Min(-999999999)
+  @Max(999999999)
+  @IsOptional()
+  @Field(() => Number, {
+    nullable: true,
+  })
+  priceAdjustment?: number | null;
+}
+
 export { SettingsCreateInput as SettingsCreateInput };

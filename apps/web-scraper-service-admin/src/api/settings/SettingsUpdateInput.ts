@@ -1,1 +1,3 @@
-export type SettingsUpdateInput = {};
+export type SettingsUpdateInput = {
+  priceAdjustment?: number | null;
+};

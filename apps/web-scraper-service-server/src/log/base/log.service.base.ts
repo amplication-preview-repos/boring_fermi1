@@ -11,6 +11,7 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { PrismaService } from "../../prisma/prisma.service";
 import { Prisma, Log as PrismaLog } from "@prisma/client";
+import { LogMessageDto } from "../LogMessageDto";
 
 export class LogServiceBase {
   constructor(protected readonly prisma: PrismaService) {}
@@ -33,5 +34,8 @@ export class LogServiceBase {
   }
   async deleteLog(args: Prisma.LogDeleteArgs): Promise<PrismaLog> {
     return this.prisma.log.delete(args);
+  }
+  async LogMessage(args: LogMessageDto): Promise<boolean> {
+    throw new Error("Not implemented");
   }
 }

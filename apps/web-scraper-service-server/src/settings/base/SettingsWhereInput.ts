@@ -14,6 +14,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { StringFilter } from "../../util/StringFilter";
 import { Type } from "class-transformer";
 import { IsOptional } from "class-validator";
+import { IntNullableFilter } from "../../util/IntNullableFilter";
 
 @InputType()
 class SettingsWhereInput {
@@ -27,6 +28,17 @@ class SettingsWhereInput {
     nullable: true,
   })
   id?: StringFilter;
+
+  @ApiProperty({
+    required: false,
+    type: IntNullableFilter,
+  })
+  @Type(() => IntNullableFilter)
+  @IsOptional()
+  @Field(() => IntNullableFilter, {
+    nullable: true,
+  })
+  priceAdjustment?: IntNullableFilter;
 }
 
 export { SettingsWhereInput as SettingsWhereInput };

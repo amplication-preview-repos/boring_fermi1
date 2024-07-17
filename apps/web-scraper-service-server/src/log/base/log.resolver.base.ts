@@ -13,16 +13,35 @@ import * as graphql from "@nestjs/graphql";
 import { GraphQLError } from "graphql";
 import { isRecordNotFoundError } from "../../prisma.util";
 import { MetaQueryPayload } from "../../util/MetaQueryPayload";
+import * as nestAccessControl from "nest-access-control";
+import * as gqlACGuard from "../../auth/gqlAC.guard";
+import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
+import * as common from "@nestjs/common";
+import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { Log } from "./Log";
 import { LogCountArgs } from "./LogCountArgs";
 import { LogFindManyArgs } from "./LogFindManyArgs";
 import { LogFindUniqueArgs } from "./LogFindUniqueArgs";
+import { CreateLogArgs } from "./CreateLogArgs";
+import { UpdateLogArgs } from "./UpdateLogArgs";
 import { DeleteLogArgs } from "./DeleteLogArgs";
+import { LogMessageDto } from "../LogMessageDto";
 import { LogService } from "../log.service";
+@common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => Log)
 export class LogResolverBase {
-  constructor(protected readonly service: LogService) {}
+  constructor(
+    protected readonly service: LogService,
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+  ) {}
 
+  @graphql.Query(() => MetaQueryPayload)
+  @nestAccessControl.UseRoles({
+    resource: "Log",
+    action: "read",
+    possession: "any",
+  })
   async _logsMeta(
     @graphql.Args() args: LogCountArgs
   ): Promise<MetaQueryPayload> {
@@ -32,12 +51,24 @@ export class LogResolverBase {
     };
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.Query(() => [Log])
+  @nestAccessControl.UseRoles({
+    resource: "Log",
+    action: "read",
+    possession: "any",
+  })
   async logs(@graphql.Args() args: LogFindManyArgs): Promise<Log[]> {
     return this.service.logs(args);
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.Query(() => Log, { nullable: true })
+  @nestAccessControl.UseRoles({
+    resource: "Log",
+    action: "read",
+    possession: "own",
+  })
   async log(@graphql.Args() args: LogFindUniqueArgs): Promise<Log | null> {
     const result = await this.service.log(args);
     if (result === null) {
@@ -46,7 +77,49 @@ export class LogResolverBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @graphql.Mutation(() => Log)
+  @nestAccessControl.UseRoles({
+    resource: "Log",
+    action: "create",
+    possession: "any",
+  })
+  async createLog(@graphql.Args() args: CreateLogArgs): Promise<Log> {
+    return await this.service.createLog({
+      ...args,
+      data: args.data,
+    });
+  }
+
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Log)
+  @nestAccessControl.UseRoles({
+    resource: "Log",
+    action: "update",
+    possession: "any",
+  })
+  async updateLog(@graphql.Args() args: UpdateLogArgs): Promise<Log | null> {
+    try {
+      return await this.service.updateLog({
+        ...args,
+        data: args.data,
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new GraphQLError(
+          `No resource was found for ${JSON.stringify(args.where)}`
+        );
+      }
+      throw error;
+    }
+  }
+
+  @graphql.Mutation(() => Log)
+  @nestAccessControl.UseRoles({
+    resource: "Log",
+    action: "delete",
+    possession: "any",
+  })
   async deleteLog(@graphql.Args() args: DeleteLogArgs): Promise<Log | null> {
     try {
       return await this.service.deleteLog(args);
@@ -58,5 +131,13 @@ export class LogResolverBase {
       }
       throw error;
     }
+  }
+
+  @graphql.Mutation(() => Boolean)
+  async LogMessage(
+    @graphql.Args()
+    args: LogMessageDto
+  ): Promise<boolean> {
+    return this.service.LogMessage(args);
   }
 }

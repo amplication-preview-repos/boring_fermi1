@@ -21,23 +21,35 @@ const CREATE_INPUT = {
   id: "exampleId",
   createdAt: new Date(),
   updatedAt: new Date(),
+  logType: "exampleLogType",
+  createdOn: new Date(),
+  message: "exampleMessage",
 };
 const CREATE_RESULT = {
   id: "exampleId",
   createdAt: new Date(),
   updatedAt: new Date(),
+  logType: "exampleLogType",
+  createdOn: new Date(),
+  message: "exampleMessage",
 };
 const FIND_MANY_RESULT = [
   {
     id: "exampleId",
     createdAt: new Date(),
     updatedAt: new Date(),
+    logType: "exampleLogType",
+    createdOn: new Date(),
+    message: "exampleMessage",
   },
 ];
 const FIND_ONE_RESULT = {
   id: "exampleId",
   createdAt: new Date(),
   updatedAt: new Date(),
+  logType: "exampleLogType",
+  createdOn: new Date(),
+  message: "exampleMessage",
 };
 
 const service = {
@@ -124,6 +136,7 @@ describe("Log", () => {
         ...CREATE_RESULT,
         createdAt: CREATE_RESULT.createdAt.toISOString(),
         updatedAt: CREATE_RESULT.updatedAt.toISOString(),
+        createdOn: CREATE_RESULT.createdOn.toISOString(),
       });
   });
 
@@ -136,6 +149,7 @@ describe("Log", () => {
           ...FIND_MANY_RESULT[0],
           createdAt: FIND_MANY_RESULT[0].createdAt.toISOString(),
           updatedAt: FIND_MANY_RESULT[0].updatedAt.toISOString(),
+          createdOn: FIND_MANY_RESULT[0].createdOn.toISOString(),
         },
       ]);
   });
@@ -159,6 +173,7 @@ describe("Log", () => {
         ...FIND_ONE_RESULT,
         createdAt: FIND_ONE_RESULT.createdAt.toISOString(),
         updatedAt: FIND_ONE_RESULT.updatedAt.toISOString(),
+        createdOn: FIND_ONE_RESULT.createdOn.toISOString(),
       });
   });
 
@@ -172,6 +187,7 @@ describe("Log", () => {
         ...CREATE_RESULT,
         createdAt: CREATE_RESULT.createdAt.toISOString(),
         updatedAt: CREATE_RESULT.updatedAt.toISOString(),
+        createdOn: CREATE_RESULT.createdOn.toISOString(),
       })
       .then(function () {
         agent

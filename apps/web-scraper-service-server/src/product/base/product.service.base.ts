@@ -11,6 +11,7 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { PrismaService } from "../../prisma/prisma.service";
 import { Prisma, Product as PrismaProduct } from "@prisma/client";
+import { UpdateProductPriceDto } from "../UpdateProductPriceDto";
 
 export class ProductServiceBase {
   constructor(protected readonly prisma: PrismaService) {}
@@ -35,5 +36,8 @@ export class ProductServiceBase {
   }
   async deleteProduct(args: Prisma.ProductDeleteArgs): Promise<PrismaProduct> {
     return this.prisma.product.delete(args);
+  }
+  async UpdateProductPrice(args: UpdateProductPriceDto): Promise<boolean> {
+    throw new Error("Not implemented");
   }
 }
